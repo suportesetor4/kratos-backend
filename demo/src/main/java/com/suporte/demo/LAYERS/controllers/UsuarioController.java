@@ -25,7 +25,16 @@ public class UsuarioController {
     @Autowired
     UsuarioService usuarioService;
     
+    @PostMapping("/login")
+    public Usuario getUsuario(@RequestBody Usuario usuario){
+        String login = usuario.getLogin();
+        String senha = usuario.getSenha();
+        
+        return usuarioService.getUsuarioPorLogin2(login,senha);
+    }
+
     @GetMapping("/{idUsuario}")
+    @Secured(value = {"ROLE_ADMIN"})
     public Usuario getUsuario(@PathVariable Integer idUsuario) {
         Usuario usuario = usuarioService.getUsuario(idUsuario);
         return usuario;

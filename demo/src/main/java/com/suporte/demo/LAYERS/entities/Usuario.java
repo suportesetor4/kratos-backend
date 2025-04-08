@@ -1,5 +1,6 @@
 package com.suporte.demo.LAYERS.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.suporte.demo.LAYERS.entities.enums.Papel;
 
 import jakarta.persistence.Column;
@@ -28,7 +29,8 @@ public class Usuario {
 
     @Column(nullable = false)
     private String telefone;
-
+    
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)  // A senha será apenas aceitada na entrada, mas não será mostrada na resposta
     @Column(nullable = false, updatable = false)
     private String senha;
 

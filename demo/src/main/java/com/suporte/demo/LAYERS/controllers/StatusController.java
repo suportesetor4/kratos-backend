@@ -10,7 +10,6 @@ public class StatusController {
        
     @GetMapping
     public String getStatus() {
-        return "O elson é o cara mais buchão do universo :)";
+        return "O Servidor está ativo!";
     }
-    
 }

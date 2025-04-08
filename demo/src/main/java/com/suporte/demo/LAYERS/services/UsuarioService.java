@@ -78,6 +78,20 @@ public class UsuarioService {
       return usuarioRepository.getUsuarioPorLogin(login);
     }
 
+    public Usuario getUsuarioPorLogin2(String login, String senha){
+
+        Usuario usuario = usuarioRepository.getUsuarioPorLogin(login);
+        if (senha == null){
+            throw new IllegalArgumentException("senha nula!");
+        }
+
+         if (!bCryptPasswordEncoder.matches(senha, usuario.getSenha())) {
+        throw new RuntimeException("Senha incorreta.");
+    }
+
+        return usuario ;
+    }
+
 
 
     public Usuario cadastrar(Usuario usuario) {
@@ -99,6 +113,7 @@ public class UsuarioService {
         if (usuarioRepository.getUsuarioPorLogin(usuario.getLogin()) != null) {
             throw new IllegalArgumentException("Login já existe.");
         }
+        
 
         // Salvar o usuário no banco de dados
         return usuarioRepository.save(usuario);

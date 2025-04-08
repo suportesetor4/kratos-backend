@@ -40,7 +40,7 @@ public class SecurityConfig {
               authorizeConfig.requestMatchers(HttpMethod.POST, "/login").permitAll();
               authorizeConfig.requestMatchers(HttpMethod.POST, "/usuario/cadastrar").permitAll();
               authorizeConfig.requestMatchers(HttpMethod.GET, "/status").permitAll();
-              authorizeConfig.requestMatchers(HttpMethod.GET, "/usuario/").permitAll();
+              authorizeConfig.requestMatchers(HttpMethod.POST, "/usuario/login").permitAll();
               authorizeConfig.anyRequest().authenticated();
             })
         .addFilter(new JWTAuthenticationFilter(configuration.getAuthenticationManager()))
