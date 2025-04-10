@@ -34,7 +34,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{idUsuario}")
-    @Secured(value = {"ROLE_ADMIN"})
+    @Secured(value = {"ROLE_ADMIN","ROLE_SERVIDOR","ROLE_BOLSISTA","ROLE_CLIENTE"})
     public Usuario getUsuario(@PathVariable Integer idUsuario) {
         Usuario usuario = usuarioService.getUsuario(idUsuario);
         return usuario;

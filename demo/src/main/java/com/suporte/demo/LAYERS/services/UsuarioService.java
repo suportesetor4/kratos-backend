@@ -118,6 +118,11 @@ public class UsuarioService {
         // Salvar o usuário no banco de dados
         return usuarioRepository.save(usuario);
     }
+    public boolean existeUsuarioPorLogin(String login) {
+        return usuarioRepository.existsByLogin(login);
+    }
+
+
 }
 
 

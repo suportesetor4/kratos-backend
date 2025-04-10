@@ -28,6 +28,9 @@ public class Usuario {
     private String nome;
 
     @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
     private String telefone;
     
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)  // A senha será apenas aceitada na entrada, mas não será mostrada na resposta
@@ -88,6 +91,15 @@ public class Usuario {
 
     public void setTelefone(String telefone){
         this.telefone = telefone;
+    }
+
+
+    public String getEmail(){
+        return email;
+    }
+
+    public void setEmail(String email){
+        this.email = email;
     }
 
 }

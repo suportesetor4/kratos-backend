@@ -16,4 +16,5 @@ public class TokenUtil {
 							.sign(Algorithm.HMAC512(SECRET.getBytes()));
     return token;
   }
+  
 }
