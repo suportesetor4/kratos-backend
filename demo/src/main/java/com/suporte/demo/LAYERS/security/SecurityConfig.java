@@ -41,6 +41,10 @@ public class SecurityConfig {
               authorizeConfig.requestMatchers(HttpMethod.POST, "/usuario/cadastrar").permitAll();
               authorizeConfig.requestMatchers(HttpMethod.GET, "/status").permitAll();
               authorizeConfig.requestMatchers(HttpMethod.POST, "/usuario/login").permitAll();
+              authorizeConfig.requestMatchers(HttpMethod.GET, "/usuario/token").permitAll();
+              authorizeConfig.requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll();
+              authorizeConfig.requestMatchers(HttpMethod.GET, "/api/auth/validate-reset-token").permitAll();
+              authorizeConfig.requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll();
               authorizeConfig.anyRequest().authenticated();
             })
         .addFilter(new JWTAuthenticationFilter(configuration.getAuthenticationManager()))

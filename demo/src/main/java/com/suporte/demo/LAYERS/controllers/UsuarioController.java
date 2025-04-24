@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.suporte.demo.LAYERS.entities.Usuario;
+import com.suporte.demo.LAYERS.security.TokenUtil;
 import com.suporte.demo.LAYERS.services.UsuarioService;
 
 @RestController
@@ -57,6 +58,12 @@ public class UsuarioController {
     @Secured(value = { "ROLE_ADMIN" })
     public void removerUsuario(@PathVariable Integer idUsuario) {
         usuarioService.remover(idUsuario);
+    }
+
+    @GetMapping("/token")
+    public String getToken(@PathVariable Integer idUsuario){
+        String flashtoken = TokenUtil.getToken("3");
+        return flashtoken;
     }
 
     @PostMapping("/cadastrar")
