@@ -34,11 +34,11 @@ public class Usuario {
     private String telefone;
     
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)  // A senha será apenas aceitada na entrada, mas não será mostrada na resposta
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     private String senha;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = true, updatable = false)
+    @Column(nullable = true)
     private Papel papel;
 
     // Getters e Setters

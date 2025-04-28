@@ -1,6 +1,8 @@
 package com.suporte.demo.LAYERS.passwordforgot;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -11,10 +13,9 @@ public class PasswordResetController {
     private PasswordResetService passwordResetService;
 
 
-
     // 1. Endpoint para solicitar token de redefinição (envia por e-mail)
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+    @GetMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam  String email) throws Exception {
         try {
             passwordResetService.CreatePasswordResetToken(email);
             return ResponseEntity.ok("E-mail de redefinição enviado com sucesso.");
@@ -25,10 +26,20 @@ public class PasswordResetController {
 
     // 2. Endpoint para validar token (opcional, pode ser feito no frontend)
     @GetMapping("/validate-reset-token")
-    public ResponseEntity<?> validateResetToken(@RequestParam String token) {
+    public ResponseEntity<?> validateResetToken(@RequestParam  String token) {
         try {
             boolean isValid = passwordResetService.validatePasswordResetToken(token);
-            return ResponseEntity.ok(isValid ? "Token válido." : "Token inválido ou expirado.");
+
+            if(isValid){
+                return ResponseEntity.ok("token válido");
+            }else{
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("token invalido");
+
+            }
+        }catch (UsernameNotFoundException e){
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -38,9 +49,9 @@ public class PasswordResetController {
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(
             @RequestParam String token,
-            @RequestBody String newPassword) {
+            @RequestBody ResetPasswordRequest request) throws Exception { 
         try {
-            passwordResetService.resetPassoword(token, newPassword);
+            passwordResetService.resetPassoword(token, request.getNewPassword());
             return ResponseEntity.ok("Senha redefinida com sucesso.");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

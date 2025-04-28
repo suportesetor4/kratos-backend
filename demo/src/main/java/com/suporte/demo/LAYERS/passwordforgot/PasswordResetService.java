@@ -1,8 +1,17 @@
 package com.suporte.demo.LAYERS.passwordforgot;
 
+import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Base64;
+
+import javax.management.RuntimeErrorException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.token.KeyBasedPersistenceTokenService;
+import org.springframework.security.core.token.SecureRandomFactoryBean;
+import org.springframework.security.core.token.Token;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,16 +21,9 @@ import com.suporte.demo.utils.EmailService;
 
 @Service
 public class PasswordResetService {
-    
-@Autowired
-private PasswordResetTokenRepository tokenRepository;
 
 @Autowired
 private UsuarioRepository usuarioRepository;
-
-
-@Autowired
-private Passwordutils passwordutils;
 
 @Autowired
 private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -31,20 +33,17 @@ private EmailService emailService;
 
 
 
-public void CreatePasswordResetToken(String email){
+public void CreatePasswordResetToken(String email) throws Exception{
     Usuario usuario = usuarioRepository.findByEmail(email)
     .orElseThrow(() -> new RuntimeException("usuário não encontrado"));
 
-    String token = passwordutils.generatePasswordResetToken();
-    PasswordResetToken resetToken = new PasswordResetToken();
-    resetToken.setToken(token);
-    resetToken.setUsuario(usuario);
-    resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(30));
-    resetToken.setUsed(false);
-    tokenRepository.save(resetToken);
+    //jwt teste.
+    KeyBasedPersistenceTokenService tokenService = getInstanceFor(usuario);
 
+	Token allocateToken = tokenService.allocateToken(usuario.getEmail());
+    System.out.println(allocateToken.getKey());
      // Monta o link com o token
-     String resetLink = "https://seudominio.com/redefinir-senha?token=" + token;
+     String resetLink = "https://seudominio.com/redefinir-senha?token=" + allocateToken.getKey();
 
      // Cria o conteúdo HTML do e-mail
      String html = "<!DOCTYPE html>" +
@@ -56,7 +55,7 @@ public void CreatePasswordResetToken(String email){
              "<a href='" + resetLink + "' style='display: inline-block; padding: 10px 20px; font-size: 16px; " +
              "color: white; background-color: #007BFF; text-decoration: none; border-radius: 5px;'>Redefinir Senha</a>" +
              "<p>Se você não solicitou isso, ignore este e-mail.</p>" +
-             "<p><small>Token: " + token + "</small></p>" + // se quiser mostrar o token no corpo também
+             "<p><small>Token: " + allocateToken.getKey() + "</small></p>" + // se quiser mostrar o token no corpo também
              "</body></html>";
 
 
@@ -68,27 +67,80 @@ public void CreatePasswordResetToken(String email){
 }
 
 
-public boolean validatePasswordResetToken(String token){
-    PasswordResetToken resetToken = tokenRepository.findByToken(token)
-    .orElseThrow(() -> new RuntimeException("Token inválido ou expirado"));
+public boolean validatePasswordResetToken(String token) {
 
-    return !resetToken.getUsed() && resetToken.getExpiryDate().isAfter(LocalDateTime.now());
-}
-public void resetPassoword(String token, String newpassword){
-    PasswordResetToken resetToken = tokenRepository.findByToken(token)
-    .orElseThrow(() -> new RuntimeException("Token inválido ou expirado"));
-    if(validatePasswordResetToken(token)){
-        Usuario usuario = resetToken.getUsuario();
-        String senhaCriptografada = bCryptPasswordEncoder.encode(newpassword);
-        usuario.setSenha(senhaCriptografada);
-        usuarioRepository.save(usuario);
+    try {
+        // Método JWT para obter os dados do token
+        PasswordTokenPublicData publicdata = readPublicData(token);
 
-        resetToken.setUsed(true);
-        tokenRepository.delete(resetToken);
-    }else{
-        throw new RuntimeException("Token expirado ou já utilizado");
+        // Verifica se o token expirou
+        if (isExpired(publicdata)) {
+            return false; // Token expirado
+        }
+
+        // Verifica se o usuário existe
+        Usuario usuario = usuarioRepository.findByEmail(publicdata.getEmail())
+                .orElse(null); // Retorna null caso o usuário não seja encontrado
+
+        if (usuario == null) {
+            return false; // Usuário não encontrado
+        }
+
+        // Verifica o token com base no usuário
+        KeyBasedPersistenceTokenService tokenService = this.getInstanceFor(usuario);
+        tokenService.verifyToken(token); // Se falhar, uma exceção pode ser lançada
+        return true; // Token válido e verificado
+
+    } catch (Exception e) {
+        // Se algum erro ocorrer, retornamos false
+        return false;
     }
 
+}
+public void resetPassoword(String token, String newpassword) throws Exception{
+
+//metodo jwt;
+    PasswordTokenPublicData publicdata = readPublicData(token);
+
+    if(isExpired(publicdata)){
+        throw new RuntimeException("token expirado!");
+
+    }
+    Usuario usuario = usuarioRepository.findByEmail(publicdata.getEmail())
+        .orElseThrow(UserEntityNotFoundException::new);
+
+    KeyBasedPersistenceTokenService tokenService = this.getInstanceFor(usuario);
+    tokenService.verifyToken(token);
+    String novasenha = bCryptPasswordEncoder.encode(newpassword);
+    usuario.setSenha(novasenha);
+    usuarioRepository.save(usuario);
+}
+
+
+private boolean isExpired(PasswordTokenPublicData publicdata) {
+    Instant createdAt = new Date(publicdata.getCreateAtTimestamp()).toInstant();
+    Instant now = new Date().toInstant();
+    return createdAt.plus(Duration.ofMinutes(10)).isBefore(now);
+}
+
+
+private PasswordTokenPublicData readPublicData(String token) {
+
+    byte[]  bytes = Base64.getDecoder().decode(token);
+    String rawTokenDecoded = new String(bytes);
+    String[] tokenParts = rawTokenDecoded.split(":");
+
+    Long timestamp = Long.parseLong(tokenParts[0]);
+    String email = tokenParts[2];  
+    return new PasswordTokenPublicData(email,timestamp);
+}
+private KeyBasedPersistenceTokenService getInstanceFor(Usuario usuario) throws Exception {
+    KeyBasedPersistenceTokenService tokenService = new KeyBasedPersistenceTokenService();
+
+    tokenService.setServerSecret(usuario.getSenha());
+    tokenService.setServerInteger(16);
+    tokenService.setSecureRandom(new SecureRandomFactoryBean().getObject());
+    return tokenService;
 }
 
 }
