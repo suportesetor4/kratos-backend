@@ -42,8 +42,75 @@ public void CreatePasswordResetToken(String email) throws Exception{
 
 	Token allocateToken = tokenService.allocateToken(usuario.getEmail());
     System.out.println(allocateToken.getKey());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     
      // Monta o link com o token
-     String resetLink = "https://seudominio.com/redefinir-senha?token=" + allocateToken.getKey();
+     String resetLink = "http://localhost:3000/esqueceu-senha/status?token=" + allocateToken.getKey();
 
      // Cria o conteúdo HTML do e-mail
      String html = "<!DOCTYPE html>" +
@@ -55,7 +122,6 @@ public void CreatePasswordResetToken(String email) throws Exception{
              "<a href='" + resetLink + "' style='display: inline-block; padding: 10px 20px; font-size: 16px; " +
              "color: white; background-color: #007BFF; text-decoration: none; border-radius: 5px;'>Redefinir Senha</a>" +
              "<p>Se você não solicitou isso, ignore este e-mail.</p>" +
-             "<p><small>Token: " + allocateToken.getKey() + "</small></p>" + // se quiser mostrar o token no corpo também
              "</body></html>";
 
 
@@ -120,7 +186,7 @@ public void resetPassoword(String token, String newpassword) throws Exception{
 private boolean isExpired(PasswordTokenPublicData publicdata) {
     Instant createdAt = new Date(publicdata.getCreateAtTimestamp()).toInstant();
     Instant now = new Date().toInstant();
-    return createdAt.plus(Duration.ofMinutes(10)).isBefore(now);
+    return createdAt.plus(Duration.ofMinutes(30)).isBefore(now);
 }
 
 

@@ -45,12 +45,15 @@ public class PasswordResetController {
         }
     }
 
-    // 3. Endpoint para submeter nova senha
+    // 3. Endpoint para submeter nova senha ---- para requisitar é newPassword json.
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(
             @RequestParam String token,
             @RequestBody ResetPasswordRequest request) throws Exception { 
         try {
+            if(request.getNewPassword() == null || request.getNewPassword().isEmpty() || request.getNewPassword().isBlank()){
+                return ResponseEntity.badRequest().body("Senha não pode ser Vazia");
+            }
             passwordResetService.resetPassoword(token, request.getNewPassword());
             return ResponseEntity.ok("Senha redefinida com sucesso.");
         } catch (RuntimeException e) {
