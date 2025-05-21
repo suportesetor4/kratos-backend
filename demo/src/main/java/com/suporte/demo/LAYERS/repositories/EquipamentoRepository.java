@@ -8,5 +8,5 @@ import com.suporte.demo.LAYERS.entities.Equipamento;
 public interface EquipamentoRepository extends JpaRepository <Equipamento,Long> {
 
     Optional<Equipamento> findByTombamento(String tombamento);
-
+    Equipamento findByNome(String nome);
 }
